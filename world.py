@@ -1,10 +1,11 @@
 import cho
+import kingmaker_algo
 
 class World:
     W = (-1, 0)
     E = (1, 0)
-    N = (0, 1)
-    S = (0, -1)
+    N = (0, -1)
+    S = (0, 1)
     RAD = 2
     ADV = 'advance'
     GIVE = 'give'
@@ -106,18 +107,23 @@ class World:
             for y in range(self.size):
                 if self.lattice[x][y]['agent_hp'] <= 0:
                     if self.lattice[x][y]['agent']:
-                        self.lattice[x][y]['cell_hp'] -= 1
+                        self.damage_cell((x, y))
                     self.lattice[x][y]['agent_hp'] = 0
                     self.lattice[x][y]['agent'] = None
                 contesters = self.lattice[x][y]['contesters']
                 if len(contesters) > 0:
                     if len(contesters) > 1:
-                        self.lattice[x][y]['cell_hp'] -= 1
+                        self.damage_cell((x, y))
                     else:
                         self.lattice[x][y]['agent_hp'] = self.lattice[x][y]['cell_hp']
                         self.lattice[x][y]['agent'] = list(contesters)[0]
                     self.lattice[x][y]['contesters'] = set()
         self.time += 1
+
+    def damage_cell(self, (x, y)):
+        self.lattice[x][y]['cell_hp'] -= 1
+        if self.lattice[x][y]['cell_hp'] <= 0:
+            self.lattice[x][y]['agent_hp'] = 0
 
     def is_desolate(self, (x, y)):
         return self.lattice[x][y]['cell_hp'] <= 0
@@ -140,7 +146,7 @@ class World:
             self.lattice[x][y]['cell_hp'])
 
     def do_move(self, from_pos, move):
-        print 'move', move
+        # print 'move', move
         if move[0] == self.GIVE:
             self.give(move[1])
         elif move[0] == self.ADV:
@@ -195,8 +201,11 @@ class World:
     def filter_area(self, area, agent):
         return filter(lambda pos: self.agent_at(pos) == agent, area)
 
+    def filter_area2(self, area, agent):
+        return self.area_intersect(area, self.scan_for(agent))
+
     def vision_area(self, (x, y)):
-        return map(lambda feeler: self.vadd((x, y), feeler), self.generate_feelers())
+        return set(map(lambda feeler: self.vadd((x, y), feeler), self.generate_feelers()))
 
     def agent_power_in_area(self, agent, area):
         return self.power(self.filter_area(area, agent))
@@ -206,7 +215,7 @@ class World:
         return max(ags, key=lambda ag: self.agent_power_in_area(ag, area))
 
     def weakest(self, me, area):
-        ags = self.agents_in_area(area) - set(me)
+        ags = self.agents_in_area(area) - {me}
         if ags:
             return min(ags, key=lambda ag: self.agent_power_in_area(ag, area))
 
@@ -216,7 +225,7 @@ class World:
             return list(inters)[0]
 
     def touch_area(self, my_pos):
-        return [self.vadd(my_pos, vdir) for vdir in self.dirs]
+        return {self.vadd(my_pos, vdir) for vdir in self.dirs}
 
     def area_intersect(self, a, b):
         return set(a).intersection(b)
@@ -231,19 +240,38 @@ class World:
         else:
             return None
 
-    def weakest_shield_pos(self, my_pos):
-        return min(self.touch_area(my_pos), key=self.hp_at)
+    def weakest_shield_pos(self, positions):
+        return min(positions, key=self.hp_at)
 
-    def shield_area(self, from_pos, vdir):
-        return map(lambda x: self.vadd(x, vdir),
-                   self.area_sub(self.touch_area(from_pos), [self.vsub(from_pos, vdir)]))
+    def shielded_area(self, from_pos, shield_pos):
+        return self.touch_area(shield_pos) - {from_pos}
+        # return map(lambda x: self.vadd(x, vdir),
+        #            self.area_sub(self.touch_area(from_pos), [self.vsub(from_pos, vdir)]))
 
-    def best_shield(self, my_pos, enemy_area):
-        weakest_pos = self.weakest_shield_pos(my_pos)
-        towards_shield = self.vsub(weakest_pos, my_pos)
-        shielded_area = self.shield_area(my_pos, towards_shield)
-        if len(self.area_intersect(shielded_area, enemy_area)) > 0:
-            return towards_shield
+    def does_intersect(self, area_a, area_b):
+        return len(self.area_intersect(area_a, area_b)) > 0
+
+    def does_shield(self, my_pos, shield_pos, enemy_area): # does it shield from enemy
+        shielded = self.shielded_area(my_pos, shield_pos)
+        return self.does_intersect(shielded, enemy_area)
+
+    def best_shield(self, my_pos, e_area):
+        possible_poses = self.touch_area(my_pos)
+        agents_posses = filter(self.agent_at, possible_poses)
+        me = self.agent_at(my_pos)
+        others_posses = filter(lambda x: self.agent_at(x) != me, agents_posses)
+        candidates = filter(lambda pos: self.does_shield(my_pos, pos, e_area), others_posses)
+        if not candidates:
+            return None
+        return min(candidates, key=self.hp_at)
+
+
+
+        # weakest_pos = self.weakest_shield_pos(my_pos)
+        # towards_shield = self.vsub(weakest_pos, my_pos)
+        # shielded_area = self.shielded_area(my_pos, towards_shield)
+        # if len(self.area_intersect(shielded_area, enemy_area)) > 0:
+        #     return towards_shield
 
     def is_advanceable(self,pos):
         return self.is_empty(pos) and not self.is_desolate(pos)
@@ -260,29 +288,30 @@ class World:
         strongest = self.strongest(area)
         weakest_pos = self.weakest_cell(my_pos, self.touch_area(my_pos))
         enemy_area = self.filter_area(area, strongest)
-        print ', kmkrs', my_pos, 'strongest', strongest, 'weakest', weakest_pos
+        # print ', kmkrs', my_pos, 'strongest', strongest, 'weakest', weakest_pos
         if advanceable:
-            print '0, contest'
+            # print '0, contest'
             return self.ADV, self.vsub(advanceable, my_pos)
         if me != strongest:
             interface = self.interface_with(my_pos, enemy_area)
+            # can_i_attach_str = bool(interface)
             if interface:
-                print '1, iface'
+                # print '1, iface'
                 return (self.ADV, self.vsub(interface, my_pos))
             else:
                 shield_dir = self.best_shield(my_pos, enemy_area)
                 if shield_dir:
-                    print '2, shield'
+                    # print '2, shield'
                     return (self.GIVE, shield_dir)
                 else:
-                    print '3, stabb no shield'
+                    # print '3, stabb no shield'
                     if weakest_pos:
                         return (self.ADV, self.vsub(weakest_pos, my_pos))
         elif weakest_pos:
-            print '4, stab weakest'
+            # print '4, stab weakest'
             return (self.ADV,  self.vsub(weakest_pos, my_pos))
         else:
-            print '5, pass'
+            # print '5, pass'
             return (self.PASS,)
 
     # def loop_check(self, cw):
@@ -302,7 +331,8 @@ class World:
         for x in range(self.size):
             for y in range(self.size):
                 if self.agent_at((x, y)):
-                    move = self.kingmaker((x, y))
+                    # move = self.kingmaker((x, y))
+                    move = kingmaker_algo.kingmaker(self, (x, y))
                     self.do_move((x, y), move)
         self.tick()
 
@@ -324,9 +354,26 @@ class World:
 
 if __name__ == '__main__':
     import time
-    w = World()
+    w = World(10, 9)
     w.vigorize_all()
+    # w = World(10, 3)
+    # w.vigorize((0, 0))
+    # w.vigorize((4, 4))
+    # w.vigorize((8, 8))
+    # w.vigorize((7, 4))
+    # w.vigorize((7, 5))
+    # w.vigorize((7, 6))
+    # w.lattice[4][4]['agent_hp'] = 3
+    # w.lattice[3][3]['agent_hp'] = 1
+    # w.lattice[3][4]['agent_hp'] = 1
+    # w.lattice[3][5]['agent_hp'] = 1
+    # w.lattice[3][5]['agent_hp'] = 1
+    # w.lattice[5][5]['agent_hp'] = 1
+    # w.lattice[4][5]['agent_hp'] = 1
+    # w.lattice[4][4]['agent_hp'] = 0
+    # w.lattice[2][4]['agent_hp'] = 0
+    # w.lattice[1][4]['agent_hp'] = 0
     while True:
         print w
         w.run_all()
-        time.sleep(0.5)
+        time.sleep(0.3)
