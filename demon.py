@@ -1,4 +1,5 @@
 import world
+import sys
 
 def fatpiggie():
     w = world.World(6)
@@ -24,7 +25,8 @@ def duel():
     w.ex_run(True)
 
 if __name__ == '__main__':
-    #fatpiggie()
-    #piggie()
-    duel()
-
+    if len(sys.argv) >= 2:
+        exec(sys.argv[1] + '()')
+    else:
+        print 'Please run with:'
+        print 'python demon.py <experiment-name>'
