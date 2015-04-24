@@ -1,5 +1,6 @@
 import cho
 import kingmaker_algo
+import copy
 
 class World:
     W = (-1, 0)
@@ -12,9 +13,10 @@ class World:
     PASS = 'pass'
     dirs = [N, S, E, W]
     time = 0
-    def __init__(self, size = 2, initial_hp = 3):
+    def __init__(self, size = 5, initial_hp = 3):
         self.lattice = []
         self.size = size
+        self.history = []
         for x in range(size):
             self.lattice.append([])
             for y in range(size):
@@ -281,50 +283,9 @@ class World:
         if len(k) > 0:
             return k[0]
 
-    def kingmaker(self, my_pos):
-        me = self.agent_at(my_pos)
-        area = self.vision_area(my_pos)
-        advanceable = self.adjacent_advanceable(my_pos)
-        strongest = self.strongest(area)
-        weakest_pos = self.weakest_cell(my_pos, self.touch_area(my_pos))
-        enemy_area = self.filter_area(area, strongest)
-        # print ', kmkrs', my_pos, 'strongest', strongest, 'weakest', weakest_pos
-        if advanceable:
-            # print '0, contest'
-            return self.ADV, self.vsub(advanceable, my_pos)
-        if me != strongest:
-            interface = self.interface_with(my_pos, enemy_area)
-            # can_i_attach_str = bool(interface)
-            if interface:
-                # print '1, iface'
-                return (self.ADV, self.vsub(interface, my_pos))
-            else:
-                shield_dir = self.best_shield(my_pos, enemy_area)
-                if shield_dir:
-                    # print '2, shield'
-                    return (self.GIVE, shield_dir)
-                else:
-                    # print '3, stabb no shield'
-                    if weakest_pos:
-                        return (self.ADV, self.vsub(weakest_pos, my_pos))
-        elif weakest_pos:
-            # print '4, stab weakest'
-            return (self.ADV,  self.vsub(weakest_pos, my_pos))
-        else:
-            # print '5, pass'
-            return (self.PASS,)
-
-    # def loop_check(self, cw):
-    #     pw = []
-    #     if cw == pw:
-    #         return True
-    #     else:
-    #         return False
-    #         cw = pw
-
-
     def run_all(self):
         print "Time: {}".format(self.time)
+        self.history.append(copy.deepcopy(self.lattice))
         # if loop_check():
         #     print stuff
         # else:
@@ -335,11 +296,26 @@ class World:
                     move = kingmaker_algo.kingmaker(self, (x, y))
                     self.do_move((x, y), move)
         self.tick()
+        return self.lattice not in self.history
+
+    def post_mortem(self):
+        print 'Detected Loop. Simulation Terminated.'
+
 
     def run_all_for(self, n):
         for i in range(n):
             self.run_all()
             print self
+
+    def bias(self, x, y, b):
+        self.lattice[x][y]['agent_hp'] = b
+        self.lattice[x][y]['cell_hp'] = b
+
+    def all_pos(self):
+        return [ (x, y) for x in range(self.size) for y in range(self.size)]
+
+   # def bias_dist(self, bias, num):
+
 
     def __str__(self):
         s = ''
@@ -354,26 +330,15 @@ class World:
 
 if __name__ == '__main__':
     import time
-    w = World(10, 9)
-    w.vigorize_all()
-    # w = World(10, 3)
-    # w.vigorize((0, 0))
-    # w.vigorize((4, 4))
-    # w.vigorize((8, 8))
-    # w.vigorize((7, 4))
-    # w.vigorize((7, 5))
-    # w.vigorize((7, 6))
-    # w.lattice[4][4]['agent_hp'] = 3
-    # w.lattice[3][3]['agent_hp'] = 1
-    # w.lattice[3][4]['agent_hp'] = 1
-    # w.lattice[3][5]['agent_hp'] = 1
-    # w.lattice[3][5]['agent_hp'] = 1
-    # w.lattice[5][5]['agent_hp'] = 1
-    # w.lattice[4][5]['agent_hp'] = 1
-    # w.lattice[4][4]['agent_hp'] = 0
-    # w.lattice[2][4]['agent_hp'] = 0
-    # w.lattice[1][4]['agent_hp'] = 0
+    w = World(10, 3)
+    w.vigorize((0,0))
+    w.vigorize((9,9))
+    # w.vigorize_all()
+    # w.start_bias(4, 4, 9)
+
     while True:
         print w
-        w.run_all()
-        time.sleep(0.3)
+        if not w.run_all():
+            break
+        # time.sleep(0.4)
+    w.post_mortem()
