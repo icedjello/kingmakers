@@ -284,8 +284,9 @@ class World:
         if len(k) > 0:
             return k[0]
 
-    def run_all(self):
-        print "Time: {}".format(self.time)
+    def run_all(self, movie=False):
+        if movie:
+            print "Time: {}".format(self.time)
         self.history.append(copy.deepcopy(self.lattice))
         # if loop_check():
         #     print stuff
@@ -322,7 +323,7 @@ class World:
         while keep_going:
             if movie:
                 print self
-            keep_going = self.run_all()
+            keep_going = self.run_all(movie)
 
     def __str__(self):
         s = ''

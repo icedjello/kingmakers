@@ -24,6 +24,16 @@ def duel():
     w.vigorize((6, 5))
     w.ex_run(True)
 
+def flatplot():
+    times = []
+    for s in range(1, 10):
+        w = world.World(s)
+        w.vigorize_all()
+        w.ex_run()
+        times.append(w.time)
+    print times
+
+
 def flatland():
     w = world.World(3, 3)
     w.vigorize_all()
