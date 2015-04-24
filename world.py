@@ -15,7 +15,8 @@ class World:
     time = 0
     def __init__(self, size = 5, initial_hp = 3):
         self.lattice = []
-        self.size = size
+        self.xsize = size
+        self.ysize = size
         self.history = []
         for x in range(size):
             self.lattice.append([])
@@ -28,16 +29,16 @@ class World:
                 })
 
     def scan_for(self, agent):
-        return [(x, y) for x in range(self.size)
-                 for y in range(self.size)
+        return [(x, y) for x in range(self.xsize)
+                 for y in range(self.ysize)
                  if self.lattice[x][y]['agent'] == agent]
 
     def vigorize(self, (x, y)):
         self.lattice[x][y]['agent'] = (x, y)
 
     def vigorize_all(self):
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.xsize):
+            for y in range(self.ysize):
                 self.vigorize((x, y))
 
     def cell_moves(self, (x, y)):
@@ -105,8 +106,8 @@ class World:
         self.lattice[x][y]['agent_hp'] -= 1
 
     def tick(self):
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.xsize):
+            for y in range(self.ysize):
                 if self.lattice[x][y]['agent_hp'] <= 0:
                     if self.lattice[x][y]['agent']:
                         self.damage_cell((x, y))
@@ -180,7 +181,7 @@ class World:
         return (0, 0)
 
     def vadd(self, v1, v2):
-        return (v1[0] + v2[0]) % self.size, (v1[1] + v2[1]) % self.size
+        return (v1[0] + v2[0]) % self.xsize, (v1[1] + v2[1]) % self.ysize
 
     def vmult(self, v1, scalar):
         return (v1[0] * scalar, v1[1] * scalar)
@@ -289,8 +290,8 @@ class World:
         # if loop_check():
         #     print stuff
         # else:
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.xsize):
+            for y in range(self.ysize):
                 if self.agent_at((x, y)):
                     # move = self.kingmaker((x, y))
                     move = kingmaker_algo.kingmaker(self, (x, y))
@@ -312,15 +313,21 @@ class World:
         self.lattice[x][y]['cell_hp'] = b
 
     def all_pos(self):
-        return [ (x, y) for x in range(self.size) for y in range(self.size)]
+        return [ (x, y) for x in range(self.xsize) for y in range(self.ysize)]
 
    # def bias_dist(self, bias, num):
 
+    def exhaustive_run(self, movie=False):
+        keep_going = True
+        while keep_going:
+            if movie:
+                print self
+            keep_going = self.run_all()
 
     def __str__(self):
         s = ''
-        for y in range(self.size):
-            for x in range(self.size):
+        for y in range(self.ysize):
+            for x in range(self.xsize):
                 s += '|' + self._cell_to_str(self.lattice[x][y])
             s += '|\n'
         return s
