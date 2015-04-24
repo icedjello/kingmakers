@@ -317,7 +317,7 @@ class World:
 
    # def bias_dist(self, bias, num):
 
-    def exhaustive_run(self, movie=False):
+    def ex_run(self, movie=False):
         keep_going = True
         while keep_going:
             if movie:
