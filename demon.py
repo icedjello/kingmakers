@@ -24,6 +24,11 @@ def duel():
     w.vigorize((6, 5))
     w.ex_run(True)
 
+def flatland():
+    w = world.World(3, 3)
+    w.vigorize_all()
+    w.ex_run(True)
+
 if __name__ == '__main__':
     if len(sys.argv) >= 2:
         exec(sys.argv[1] + '()')
