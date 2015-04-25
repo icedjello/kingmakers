@@ -1,4 +1,5 @@
 import world
+import random
 import sys
 
 def fatpiggie():
@@ -26,13 +27,28 @@ def duel():
 
 def flatplot():
     times = []
-    for s in range(1, 10):
+    for s in range(1, 100):
+        print 'World S', s
         w = world.World(s)
         w.vigorize_all()
-        w.ex_run()
+        w.ex_run(True)
         times.append(w.time)
     print times
 
+def lavarain():
+    size = 10
+    w = world.World(size)
+    w.vigorize_all()
+    to_go = True
+    while to_go:
+        print 'before lava'
+        print w
+        to_go = w.run_all(True)
+        x, y = random.randint(1, size-1), random.randint(1, size-1)
+        w.damage((x, y))
+        print 'after lava'
+        print w
+        to_go = True
 
 def flatland():
     w = world.World(3, 3)
