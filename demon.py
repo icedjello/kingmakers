@@ -21,8 +21,48 @@ def piggie():
 
 def duel():
     w = world.World(10)
-    w.vigorize((3, 5))
-    w.vigorize((6, 5))
+    # w.vigorize((3, 5))
+    # w.vigorize((6, 5))
+
+    # w.vigorize((0, 0))
+    # w.vigorize((9, 9))
+
+    w.vigorize((5, 5))
+    w.vigorize((0, 0))
+    w.ex_run(True)
+
+def drawtape(w, y, h):
+    for x in range(10):
+        w.lattice[x][y]['agent'] = (1, y)
+        w.bias(x, y, h)
+
+def tape():
+    w = world.World(10)
+    w.vigorize_all()
+    drawtape(w, 4, 1)
+    w.ex_run(True)
+
+def tab():
+    w = world.World(10)
+    w.vigorize_all()
+    h = 1
+    y = 4
+    for x in range(3, 7):
+        w.lattice[x][y]['agent'] = (4, y)
+        w.bias(x, y, h)
+    w.ex_run(True)
+
+
+
+def stripes():
+    w = world.World(10)
+    w.vigorize_all()
+    h = 9
+    drawtape(w, 0, h)
+    drawtape(w, 2, h)
+    drawtape(w, 4, h)
+    drawtape(w, 6, h)
+    drawtape(w, 8, h)
     w.ex_run(True)
 
 def flatplot():
@@ -35,20 +75,6 @@ def flatplot():
         times.append(w.time)
     print times
 
-def lavarain():
-    size = 10
-    w = world.World(size)
-    w.vigorize_all()
-    to_go = True
-    while to_go:
-        print 'before lava'
-        print w
-        to_go = w.run_all(True)
-        x, y = random.randint(1, size-1), random.randint(1, size-1)
-        w.damage((x, y))
-        print 'after lava'
-        print w
-        to_go = True
 
 def flatland():
     w = world.World(3, 3)

@@ -339,10 +339,10 @@ class World:
 if __name__ == '__main__':
     import time
     w = World(10, 3)
-    w.vigorize((0,0))
-    w.vigorize((9,9))
-    # w.vigorize_all()
-    # w.start_bias(4, 4, 9)
+    #w.vigorize((0,0))
+    #w.vigorize((9,9))
+    w.vigorize_all()
+   # w.bias(1, 1, 9)
 
     while True:
         print w
