@@ -13,10 +13,24 @@ def fatpiggie():
         print w
     #w.ex_run(True)
 
+def tilegame():
+    w = world.World(3)
+    w.vigorize_all()
+    for i in range(9):
+        x, y = i % 3, i // 3
+        w.bias(x, y, i + 1)
+    w.ex_run(True)
+
 def piggie():
     w = world.World(3)
     w.vigorize_all()
     w.bias(1, 1, 8)
+    w.ex_run(True)
+
+def weakkie():
+    w = world.World(3)
+    w.vigorize_all()
+    w.bias(1, 1, 1)
     w.ex_run(True)
 
 def duel():
