@@ -21,10 +21,13 @@ def kingmaker(world, my_pos):
         else:
             return world.PASS,
     else: # me != strongest
-        if shield_dir: # if an adequate shield exists
-            return world.GIVE, shield_dir
-        elif interface:
+        # if shield_dir: # if an adequate shield exists
+        #     return world.GIVE, shield_dir
+        # elif interface:
+        if interface: # if an adequate shield exists
             return world.ADV, world.vsub(interface, my_pos)
+        elif shield_dir:
+            return world.GIVE, shield_dir
         else:
             return world.PASS,
 
