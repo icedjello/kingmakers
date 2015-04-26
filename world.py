@@ -149,7 +149,7 @@ class World:
             self.lattice[x][y]['cell_hp'])
 
     def do_move(self, from_pos, move):
-        # print 'move', move
+        # print 'move', from_pos, move
         if move[0] == self.GIVE:
             self.give(move[1])
         elif move[0] == self.ADV:
@@ -192,6 +192,17 @@ class World:
     def sum_health(self, agent_area):
         return sum(map(self.hp_at, agent_area))
 
+    def cell_hp_at(self, (x, y)):
+        return self.lattice[x][y]['cell_hp']
+
+    def whole_world(self):
+        return [ (i,j)
+            for i in range(self.xsize)
+                for j in range(self.ysize)]
+
+    def sum_world_health(self):
+        return sum(map(self.cell_hp_at, self.whole_world()))
+
     def generate_feelers(self):
         return set(map(self.squash_feeler, list(cho.cho(([self.dirs + [(0, 0)]]) * self.RAD))))
 
@@ -209,6 +220,9 @@ class World:
 
     def vision_area(self, (x, y)):
         return set(map(lambda feeler: self.vadd((x, y), feeler), self.generate_feelers()))
+
+    def agent_power(self, agent):
+        return self.agent_power_in_area(agent, self.filter_area(self.whole_world(), agent))
 
     def agent_power_in_area(self, agent, area):
         return self.power(self.filter_area(area, agent))
@@ -286,7 +300,7 @@ class World:
 
     def run_all(self, movie=False):
         if movie:
-            print "Time: {}".format(self.time)
+            print "tick: {}".format(self.time)
         self.history.append(copy.deepcopy(self.lattice))
         # if loop_check():
         #     print stuff
@@ -302,12 +316,43 @@ class World:
 
     def post_mortem(self):
         print 'Detected Loop. Simulation Terminated.'
-
+        self.stat_print()
+        print 'First Scene'
+        self.print_last()
 
     def run_all_for(self, n):
         for i in range(n):
             self.run_all()
             print self
+
+    def agent_count(self):
+        return len(self.agents_in_area(self.whole_world()))
+
+    def desoalte_cell_count(self):
+        return len(filter(self.is_desolate, self.whole_world()))
+
+    def all_agents(self):
+        return self.agents_in_area(self.whole_world())
+
+    def strongest_in_world(self):
+        return max(self.all_agents(), key=self.agent_power)
+
+    def weakest_in_world(self):
+        return min(self.all_agents(), key=self.agent_power)
+
+    def stat_print(self):
+        print "agents: ", self.agent_count()
+        print "dead cells: ", self.desoalte_cell_count()
+        print "sum agent hp: ", self.sum_health(self.whole_world())
+        print "sum world hp: ", self.sum_world_health()
+        print "strongest agent power: ", self.agent_power(self.strongest_in_world())
+        print "weakest agent power: ", self.agent_power(self.weakest_in_world())
+
+    def print_last(self):
+        oldl = self.lattice
+        self.lattice = self.history[0]
+        print self
+        self.lattice = oldl
 
     def bias(self, x, y, b):
         self.lattice[x][y]['agent_hp'] = b
@@ -324,6 +369,7 @@ class World:
             if movie:
                 print self
             keep_going = self.run_all(movie)
+        self.post_mortem()
 
     def __str__(self):
         s = ''
