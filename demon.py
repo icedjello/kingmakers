@@ -2,7 +2,7 @@ import world
 import random
 import sys
 
-def fatpiggie():
+def fatpiggy():
     w = world.World(6)
     w.vigorize_all()
     for (x, y) in [(2, 2), (2, 3), (3, 2), (3, 3)]:
@@ -21,13 +21,20 @@ def tilegame():
         w.bias(x, y, i + 1)
     w.ex_run(True)
 
-def piggie():
+def piggy():
     w = world.World(3)
     w.vigorize_all()
     w.bias(1, 1, 8)
     w.ex_run(True)
 
-def weakkie():
+def piggy_war():
+    w = world.World(3)
+    w.vigorize_all()
+    w.bias(0, 0, 8)
+    w.bias(2, 2, 1)
+    w.ex_run(True)
+
+def weak_piggie():
     w = world.World(3)
     w.vigorize_all()
     w.bias(1, 1, 1)
@@ -45,6 +52,19 @@ def duel():
     w.vigorize((0, 0))
     w.ex_run(True)
 
+def cowboys():
+    w = world.World(10)
+    w.vigorize((5, 4))
+    w.vigorize((4, 4))
+    w.ex_run(True)
+
+def truel():
+    w = world.World(10)
+    w.vigorize((0, 0))
+    w.vigorize((7, 7))
+    w.vigorize((3, 4))
+    w.ex_run(True)
+
 def drawtape(w, y, h):
     for x in range(10):
         w.lattice[x][y]['agent'] = (1, y)
@@ -56,7 +76,7 @@ def tape():
     drawtape(w, 4, 1)
     w.ex_run(True)
 
-def tab():
+def weak_tab():
     w = world.World(10)
     w.vigorize_all()
     h = 1
@@ -66,7 +86,15 @@ def tab():
         w.bias(x, y, h)
     w.ex_run(True)
 
-
+def strong_tab():
+    w = world.World(10)
+    w.vigorize_all()
+    h = 8
+    y = 4
+    for x in range(3, 7):
+        w.lattice[x][y]['agent'] = (4, y)
+        w.bias(x, y, h)
+    w.ex_run(True)
 
 def stripes():
     w = world.World(10)
@@ -89,9 +117,18 @@ def flatplot():
         times.append(w.time)
     print times
 
+def tinyflatland():
+    w = world.World(3, 3)
+    w.vigorize_all()
+    w.ex_run(True)
 
 def flatland():
-    w = world.World(3, 3)
+    w = world.World(9, 9)
+    w.vigorize_all()
+    w.ex_run(True)
+
+def crazyflatland():
+    w = world.World(20, 20)
     w.vigorize_all()
     w.ex_run(True)
 
