@@ -1,5 +1,4 @@
 import world
-import random
 import sys
 
 def fatpiggy():
@@ -34,7 +33,7 @@ def piggy_war():
     w.bias(2, 2, 1)
     w.ex_run(True)
 
-def weak_piggie():
+def weak_piggy():
     w = world.World(3)
     w.vigorize_all()
     w.bias(1, 1, 1)
