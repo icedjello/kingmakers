@@ -1,4 +1,3 @@
-__author__ = 'Gonzo'
 
 def kingmaker(world, my_pos):
     me = world.agent_at(my_pos)

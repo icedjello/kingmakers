@@ -27,8 +27,6 @@ class TestWorld(unittest.TestCase):
         self.fat.damage((3, 2))
         self.fat.tick()
 
-
-
     # def test_hp_at(self):
     #     w = world.World(4, 3)
     #     w.vigorize((1,1))
